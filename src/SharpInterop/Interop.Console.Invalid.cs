@@ -38,13 +38,22 @@ public static partial class Interop
             public override void EnableVT100Support() => throw this.InvalidConsoleException();
 
             /// <inheritdoc/>
-            public override void ReplaceStandardHandles() => throw this.InvalidConsoleException();
+            public override void DisableVT100Support() => throw this.InvalidConsoleException();
+
+            /// <inheritdoc/>
+            public override void RestoreVT100Support() => throw this.InvalidConsoleException();
 
             /// <inheritdoc/>
             public override bool HideConsoleWindow() => throw this.InvalidConsoleException();
 
             /// <inheritdoc/>
             public override bool ShowConsoleWindow() => throw this.InvalidConsoleException();
+
+            /// <inheritdoc/>
+            public override bool PositionConsoleWindow(int x, int y, int? width = null, int? height = null, bool moveToTop = false, bool activate = false)
+            {
+                throw this.InvalidConsoleException();
+            }
 
             private InvalidOperationException InvalidConsoleException() => new("The console is invalid.", this.Exception);
         }

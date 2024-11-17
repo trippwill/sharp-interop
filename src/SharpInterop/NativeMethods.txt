@@ -19,3 +19,4 @@ ShowWindow
 AnimateWindow
 SetWindowPos
 GetWindowRect
+GetClassName

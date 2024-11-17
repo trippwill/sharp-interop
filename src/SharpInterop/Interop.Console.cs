@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 using SharpInterop.Exceptions;
@@ -26,6 +25,7 @@ public static partial class Interop
         private static Console? _instance;
         private static SafeFileHandle? _inputHandle;
         private static SafeFileHandle? _outputHandle;
+        private static CONSOLE_MODE? _defaultOutputMode;
 
         /// <summary>
         /// Gets the current console instance without any safety checks.
@@ -176,15 +176,42 @@ public static partial class Interop
         }
 
         /// <summary>
+        /// Reads a single key from the console input buffer.
+        /// </summary>
+        /// <returns>The key read from the console input buffer.</returns>
+        /// <remarks>
+        /// This method blocks until a key is available in the console input buffer.
+        /// </remarks>
+        /// <exception cref="Win32Exception">Thrown when there is an error reading from the console input buffer.</exception>
+        public virtual int WaitForReadKey()
+        {
+            unsafe
+            {
+                int* buffer = stackalloc int[1];
+                uint charsRead = 0;
+
+                while (charsRead == 0)
+                {
+                    PInvoke.ReadConsole(this.InputHandle, buffer, 1, out charsRead, null);
+                }
+
+                return buffer[0];
+            }
+        }
+
+        /// <summary>
         /// Enables VT100 support for the console.
         /// </summary>
         public virtual void EnableVT100Support()
         {
             PInvoke.GetConsoleMode(this.OutputHandle, out CONSOLE_MODE outMode);
-            PInvoke.GetConsoleMode(this.InputHandle, out CONSOLE_MODE inMode);
+
+            lock (_lock)
+            {
+                _defaultOutputMode ??= outMode;
+            }
 
             PInvoke.SetConsoleMode(this.OutputHandle, outMode | CONSOLE_MODE.ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-            PInvoke.SetConsoleMode(this.InputHandle, inMode | CONSOLE_MODE.ENABLE_VIRTUAL_TERMINAL_INPUT);
         }
 
         /// <summary>
@@ -193,31 +220,30 @@ public static partial class Interop
         public virtual void DisableVT100Support()
         {
             PInvoke.GetConsoleMode(this.OutputHandle, out CONSOLE_MODE outMode);
-            PInvoke.GetConsoleMode(this.InputHandle, out CONSOLE_MODE inMode);
+
+            lock (_lock)
+            {
+                _defaultOutputMode ??= outMode;
+            }
 
             PInvoke.SetConsoleMode(this.OutputHandle, outMode & ~CONSOLE_MODE.ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-            PInvoke.SetConsoleMode(this.InputHandle, inMode & ~CONSOLE_MODE.ENABLE_VIRTUAL_TERMINAL_INPUT);
         }
 
         /// <summary>
-        /// Replaces the process's standard input, output, and error handles with the console's handles.
-        /// Any cached references to the standard handles will be invalidated.
+        /// Restores the console's default VT100 support state.
         /// </summary>
-        public virtual void ReplaceStandardHandles()
+        public virtual void RestoreVT100Support()
         {
-            ReplaceStandardHandle(STD_HANDLE.STD_INPUT_HANDLE, this.InputHandle);
-            ReplaceStandardHandle(STD_HANDLE.STD_OUTPUT_HANDLE, this.OutputHandle);
-            ReplaceStandardHandle(STD_HANDLE.STD_ERROR_HANDLE, this.OutputHandle);
+            if (_defaultOutputMode is null)
+                return;
 
-            static bool ReplaceStandardHandle(STD_HANDLE handle, SafeFileHandle hHandle)
+            lock (_lock)
             {
-                HANDLE currentHandle = PInvoke.GetStdHandle(handle);
-                if (!PInvoke.SetStdHandle(handle, hHandle))
-                {
-                    return false;
-                }
+                if (_defaultOutputMode is null)
+                    return;
 
-                return PInvoke.CloseHandle(currentHandle);
+                PInvoke.SetConsoleMode(this.OutputHandle, _defaultOutputMode.Value);
+                _defaultOutputMode = null;
             }
         }
 
@@ -265,6 +291,9 @@ public static partial class Interop
             if (consoleWindow == HWND.Null)
                 return false;
 
+            if (IsWindowsTerminal(consoleWindow))
+                return false;
+
             if (!PInvoke.GetWindowRect(consoleWindow, out RECT rect))
                 return false;
 
@@ -301,7 +330,7 @@ public static partial class Interop
                 WIN32_ERROR error = (WIN32_ERROR)Marshal.GetLastPInvokeError();
 
                 // Unrecoverable errors
-                if (error == WIN32_ERROR.ERROR_ACCESS_DENIED || !attachMode.AllowAnyFallback)
+                if (error == WIN32_ERROR.ERROR_ACCESS_DENIED && !attachMode.AllowAnyFallback)
                 {
                     return attachMode.ThrowOnError
                         ? throw ConsoleAttachException.FromPInvokeError(error)
@@ -334,15 +363,24 @@ public static partial class Interop
         private static void ReleaseConsoleResources(bool throwOnError)
         {
             _instance = null;
+
+            bool success = true;
+
+            if (_defaultOutputMode is not null)
+            {
+                success &= PInvoke.SetConsoleMode(_outputHandle, _defaultOutputMode.Value);
+                _defaultOutputMode = null;
+            }
+
+            success &= PInvoke.FreeConsole();
+
             _inputHandle?.Close();
-            _inputHandle = null;
             _outputHandle?.Close();
+            _inputHandle = null;
             _outputHandle = null;
 
-            if (!PInvoke.FreeConsole() && throwOnError)
-            {
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-            }
+            if (throwOnError && !success)
+                throw new Win32Exception(Marshal.GetLastPInvokeError());
         }
 
         private static SafeFileHandle GetConsoleInputHandle()
