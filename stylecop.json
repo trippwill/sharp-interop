@@ -2,17 +2,19 @@
   "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
   "settings": {
     "documentationRules": {
-      "companyName": "trippwill",
+      "companyName": "Contributors to the SharpInterop project",
       "copyrightText": "Copyright (c) {companyName}. All rights reserved.\nLicensed under the {licenseName} license. See {licenseFile} file in the project root for full license information.",
       "variables": {
         "licenseName": "MIT",
         "licenseFile": "LICENSE"
       },
       "fileNamingConvention": "metadata",
-      "xmlHeader": false
+      "xmlHeader": false,
+      "documentInterfaces": false,
+      "documentInternalElements": false
     },
     "orderingRules": {
-      "usingDirectivesPlacement": "outsideNamespace"
+      "usingDirectivesPlacement": "outsideNamespace",
     }
   }
 }

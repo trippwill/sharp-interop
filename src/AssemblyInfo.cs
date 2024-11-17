@@ -1,4 +1,4 @@
-// Copyright (c) trippwill. All rights reserved.
+// Copyright (c) Contributors to the SharpInterop project. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Runtime.InteropServices;
