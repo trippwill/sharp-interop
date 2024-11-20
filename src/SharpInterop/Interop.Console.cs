@@ -176,6 +176,26 @@ public static partial class Interop
         }
 
         /// <summary>
+        /// Writes the specified string value to the console output buffer.
+        /// </summary>
+        /// <param name="value">The string value to write to the console output buffer.</param>
+        public virtual void Write(string value)
+        {
+            using StreamWriter writer = this.GetWriter();
+            writer.Write(value);
+        }
+
+        /// <summary>
+        /// Writes the specified string value to the console output buffer, followed by the current line terminator.
+        /// </summary>
+        /// <param name="value">The string value to write to the console output buffer.</param>
+        public virtual void WriteLine(string value)
+        {
+            using StreamWriter writer = this.GetWriter();
+            writer.WriteLine(value);
+        }
+
+        /// <summary>
         /// Reads a single key from the console input buffer.
         /// </summary>
         /// <returns>The key read from the console input buffer.</returns>
@@ -291,9 +311,6 @@ public static partial class Interop
             if (consoleWindow == HWND.Null)
                 return false;
 
-            if (IsWindowsTerminal(consoleWindow))
-                return false;
-
             if (!PInvoke.GetWindowRect(consoleWindow, out RECT rect))
                 return false;
 
@@ -307,6 +324,71 @@ public static partial class Interop
             HWND hWndInsertAfter = moveToTop ? HWND.HWND_TOPMOST : HWND.Null;
 
             return PInvoke.SetWindowPos(consoleWindow, hWndInsertAfter, x, y, newWidth, newHeight, flags);
+        }
+
+        /// <summary>
+        /// Adds a control handler for the specified control signal.
+        /// </summary>
+        /// <param name="signal">The control signal to handle.</param>
+        /// <param name="handler">The action to execute when the control signal is received.</param>
+        /// <returns>A pointer to the control handler.</returns>
+        /// <exception cref="Win32Exception">Thrown when the control handler cannot be added.</exception>
+        public unsafe virtual IntPtr AddControlHandler(ControlSignal signal, Action handler)
+        {
+            var handlerPointer = (delegate* unmanaged[Stdcall]<uint, BOOL>)Marshal.GetFunctionPointerForDelegate(
+                GetControlHandler(signal, handler));
+
+            if (PInvoke.SetConsoleCtrlHandler(handlerPointer, Add: true))
+                return (IntPtr)handlerPointer;
+
+            throw new Win32Exception(Marshal.GetLastPInvokeError());
+
+            //// *** Local functions ***
+
+            static CtrlHandler GetControlHandler(ControlSignal signal, Action handler)
+            {
+                return (ControlSignal ctrlType) =>
+                {
+                    if (ctrlType == signal)
+                    {
+                        handler();
+                        return true;
+                    }
+
+                    return false;
+                };
+            }
+        }
+
+        /// <summary>
+        /// Removes a control handler using the specified pointer.
+        /// </summary>
+        /// <param name="handlerPointer">The function pointer returned from <see cref="AddControlHandler(ControlSignal, Action)"/>.</param>
+        /// <exception cref="Win32Exception">Thrown when the control handler cannot be removed.</exception>
+        public unsafe virtual void RemoveControlHandler(IntPtr handlerPointer)
+        {
+            if (!PInvoke.SetConsoleCtrlHandler((delegate* unmanaged[Stdcall]<uint, BOOL>)handlerPointer, Add: false))
+                throw new Win32Exception(Marshal.GetLastPInvokeError());
+        }
+
+        /// <summary>
+        /// Ignores the CTRL+C signal for the console.
+        /// </summary>
+        /// <exception cref="Win32Exception">Thrown when the CTRL+C signal cannot be ignored.</exception>
+        public unsafe virtual void IgnoreCtrlC()
+        {
+            if (!PInvoke.SetConsoleCtrlHandler((delegate* unmanaged[Stdcall]<uint, BOOL>)null, Add: true))
+                throw new Win32Exception(Marshal.GetLastPInvokeError());
+        }
+
+        /// <summary>
+        /// Enables the CTRL+C signal for the console.
+        /// </summary>
+        /// <exception cref="Win32Exception">Thrown when the CTRL+C signal cannot be enabled.</exception>
+        public unsafe virtual void RestoreCtrlC()
+        {
+            if (!PInvoke.SetConsoleCtrlHandler((delegate* unmanaged[Stdcall]<uint, BOOL>)null, Add: false))
+                throw new Win32Exception(Marshal.GetLastPInvokeError());
         }
 
         /// <inheritdoc/>

@@ -35,6 +35,15 @@ public static partial class Interop
             public override StreamWriter GetWriter() => throw this.InvalidConsoleException();
 
             /// <inheritdoc/>
+            public override void Write(string value) => throw this.InvalidConsoleException();
+
+            /// <inheritdoc/>
+            public override void WriteLine(string value) => throw this.InvalidConsoleException();
+
+            /// <inheritdoc/>
+            public override int WaitForReadKey() => throw this.InvalidConsoleException();
+
+            /// <inheritdoc/>
             public override void EnableVT100Support() => throw this.InvalidConsoleException();
 
             /// <inheritdoc/>
@@ -54,6 +63,24 @@ public static partial class Interop
             {
                 throw this.InvalidConsoleException();
             }
+
+            /// <inheritdoc/>
+            public override nint AddControlHandler(ControlSignal signal, Action handler)
+            {
+                throw this.InvalidConsoleException();
+            }
+
+            /// <inheritdoc/>
+            public override void RemoveControlHandler(nint controlHandler)
+            {
+                throw this.InvalidConsoleException();
+            }
+
+            /// <inheritdoc/>
+            public override void IgnoreCtrlC() => throw this.InvalidConsoleException();
+
+            /// <inheritdoc/>
+            public override void RestoreCtrlC() => throw this.InvalidConsoleException();
 
             private InvalidOperationException InvalidConsoleException() => new("The console is invalid.", this.Exception);
         }

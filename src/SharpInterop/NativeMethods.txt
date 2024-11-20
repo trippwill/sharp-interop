@@ -3,6 +3,11 @@ ATTACH_PARENT_PROCESS
 GENERIC_ACCESS_RIGHTS
 FILE_ACCESS_RIGHTS
 HWND_TOPMOST
+CTRL_C_EVENT
+CTRL_BREAK_EVENT
+CTRL_CLOSE_EVENT
+CTRL_LOGOFF_EVENT
+CTRL_SHUTDOWN_EVENT
 AttachConsole
 AllocConsole
 FreeConsole
@@ -11,6 +16,7 @@ WriteConsole
 ReadConsole
 GetConsoleMode
 SetConsoleMode
+SetConsoleCtrlHandler
 GetStdHandle
 SetStdHandle
 CloseHandle

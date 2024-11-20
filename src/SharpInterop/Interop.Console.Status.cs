@@ -5,7 +5,7 @@ namespace SharpInterop;
 
 public static partial class Interop
 {
-public abstract partial class Console
+    public abstract partial class Console
     {
         /// <summary>
         /// Specifies the status of the console.
