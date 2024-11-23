@@ -65,6 +65,9 @@ public static partial class Interop
             }
 
             /// <inheritdoc/>
+            public override bool FocusConsoleWindow() => throw this.InvalidConsoleException();
+
+            /// <inheritdoc/>
             public override nint AddControlHandler(ControlSignal signal, Action handler)
             {
                 throw this.InvalidConsoleException();

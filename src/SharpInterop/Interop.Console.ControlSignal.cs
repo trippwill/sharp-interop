@@ -22,27 +22,27 @@ public static partial class Interop
             /// <summary>
             /// The CTRL+C signal.
             /// </summary>
-            CtrlC = PInvoke.CTRL_C_EVENT,
+            CTRL_C = PInvoke.CTRL_C_EVENT,
 
             /// <summary>
             /// The CTRL+BREAK signal.
             /// </summary>
-            CtrlBreak = PInvoke.CTRL_BREAK_EVENT,
+            CTRL_BREAK = PInvoke.CTRL_BREAK_EVENT,
 
             /// <summary>
             /// A signal that the system sends to all processes attached to a console when the user closes the console.
             /// </summary>
-            CloseEvent = PInvoke.CTRL_CLOSE_EVENT,
+            CLOSE = PInvoke.CTRL_CLOSE_EVENT,
 
             /// <summary>
             /// A signal that the system sends to all console processes when the user logs off.
             /// </summary>
-            LogoffEvent = PInvoke.CTRL_LOGOFF_EVENT,
+            LOGOFF = PInvoke.CTRL_LOGOFF_EVENT,
 
             /// <summary>
             /// A signal that the system sends to all console processes when the system is shutting down.
             /// </summary>
-            ShutdownEvent = PInvoke.CTRL_SHUTDOWN_EVENT,
+            SHUTDOWN = PInvoke.CTRL_SHUTDOWN_EVENT,
         }
     }
 }

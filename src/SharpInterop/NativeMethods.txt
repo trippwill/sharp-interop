@@ -22,6 +22,7 @@ SetStdHandle
 CloseHandle
 GetConsoleWindow
 ShowWindow
+SetForegroundWindow
 AnimateWindow
 SetWindowPos
 GetWindowRect

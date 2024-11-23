@@ -327,6 +327,18 @@ public static partial class Interop
         }
 
         /// <summary>
+        /// Focuses the console window.
+        /// </summary>
+        /// <returns>True if the console was focused; otherwise, false.</returns>
+        public virtual bool FocusConsoleWindow()
+        {
+            HWND consoleWindow = GetConsoleWindow();
+            if (consoleWindow == HWND.Null)
+                return false;
+            return PInvoke.SetForegroundWindow(consoleWindow);
+        }
+
+        /// <summary>
         /// Adds a control handler for the specified control signal.
         /// </summary>
         /// <param name="signal">The control signal to handle.</param>
