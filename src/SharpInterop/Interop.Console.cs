@@ -158,6 +158,15 @@ public static partial class Interop
         }
 
         /// <summary>
+        /// Attaches to the parent process's console.
+        /// </summary>
+        /// <returns>An instance of <see cref="Console"/> representing the attached or allocated console.</returns>
+        public static Console GetOrAttachToParent()
+        {
+            return Attach(AttachOptions.GetOrAttachToParent());
+        }
+
+        /// <summary>
         /// Gets a <see cref="StreamReader"/> for reading from the console output buffer.
         /// </summary>
         /// <returns>A <see cref="StreamReader"/> for reading from the console output buffer.</returns>

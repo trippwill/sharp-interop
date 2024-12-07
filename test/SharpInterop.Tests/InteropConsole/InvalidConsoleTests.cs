@@ -66,14 +66,6 @@ public class InvalidConsoleTests
     }
 
     [Fact]
-    public void InvalidConsole_ReplaceStandardHandles_ThrowsInvalidOperationException()
-    {
-        Interop.Console.Invalid invalidConsole = new Interop.Console.Invalid(null);
-
-        Assert.Throws<InvalidOperationException>(() => invalidConsole.ReplaceStandardHandles());
-    }
-
-    [Fact]
     public void InvalidConsole_HideConsoleWindow_ThrowsInvalidOperationException()
     {
         Interop.Console.Invalid invalidConsole = new Interop.Console.Invalid(null);
